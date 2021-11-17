@@ -26,12 +26,12 @@ GLdouble ySnake[MATRIX_SIZE * MATRIX_SIZE]{ 30,30,30,30,30,30,30 };
 GLdouble xFood = 0;
 GLdouble yFood = 0;
 
-static UINT16 SnakeLength = 1;
+static UINT16 snake_length = 1;
 static UINT16 Speed = 260;
 static UINT16 current_direction = LEFT;
 static UINT64 Score = 0;
 
-VOID DisplayCallback(
+VOID display_callback(
 	VOID
 );
 
@@ -40,7 +40,7 @@ VOID DisplayCallback(
 *	@param Height #of screen
 */
 
-VOID ReshapeCallback(
+VOID reshape_callback(
 	INT Width,
 	INT Height
 );
@@ -50,7 +50,7 @@ VOID ReshapeCallback(
 *	Please ignore other parameters
 */
 
-VOID KeyCallback(
+VOID key_callback(
 	INT Key,
 	INT,
 	INT
@@ -62,16 +62,17 @@ VOID init();
 *	@param x, coordinate on x axis
 *	@param y, coordinate on y axis
 */
-VOID DrawSingleSquare(
+
+VOID draw_single_square(
 	GLfloat x,
 	GLfloat y
 );
 
-VOID DrawGrid(VOID);
-VOID DrawFood(VOID);
-VOID DrawSnake(VOID);
-VOID RandomizeCoordinateOfFood(VOID);
-BOOL HasTouchtItSelf(VOID);
+VOID draw_grid(VOID);
+VOID draw_food(VOID);
+VOID draw_snake(VOID);
+VOID randomize_food(VOID);
+BOOL has_touched_itself(VOID);
 
 VOID loop(
 	INT
@@ -89,16 +90,16 @@ int main(
 	glutInitWindowSize(800, 800);
 	glutCreateWindow(argv[0]);
 
-	glutDisplayFunc(DisplayCallback);
-	glutReshapeFunc(ReshapeCallback);
+	glutDisplayFunc(display_callback);
+	glutReshapeFunc(reshape_callback);
 	glutTimerFunc(0, loop, 0);
-	glutSpecialFunc(KeyCallback);
+	glutSpecialFunc(key_callback);
 
 	init();
 	glutMainLoop();
 }
 
-VOID DisplayCallback(
+VOID display_callback(
 	VOID
 )
 {
@@ -108,10 +109,10 @@ VOID DisplayCallback(
 	glClear(GL_COLOR_BUFFER_BIT);
 	glLoadIdentity();
 
-	DrawGrid();
-	DrawSnake();
+	draw_grid();
+	draw_snake();
 
-	if (HasTouchtItSelf())
+	if (has_touched_itself())
 	{
 		snprintf(buffer, BUFF_SIZE, "Your snake is died. You lost!");
 
@@ -119,12 +120,12 @@ VOID DisplayCallback(
 		ExitProcess(EXIT_SUCCESS);
 	}
 
-	DrawFood();
+	draw_food();
 
 	glutSwapBuffers();
 }
 
-VOID ReshapeCallback(
+VOID reshape_callback(
 	INT Width,
 	INT Height
 )
@@ -136,7 +137,7 @@ VOID ReshapeCallback(
 	glMatrixMode(GL_MODELVIEW);
 }
 
-VOID KeyCallback(
+VOID key_callback(
 	INT key,
 	INT,
 	INT
@@ -171,10 +172,10 @@ VOID KeyCallback(
 VOID init()
 {
 	glClearColor((GLclampf)0.1, (GLclampf)0.1, (GLclampf)0.1, (GLclampf)1.0);
-	RandomizeCoordinateOfFood();
+	randomize_food();
 }
 
-VOID DrawSingleSquare(
+VOID draw_single_square(
 	GLfloat x,
 	GLfloat y
 )
@@ -196,24 +197,24 @@ VOID DrawSingleSquare(
 	glEnd();
 }
 
-VOID DrawGrid(VOID)
+VOID draw_grid(VOID)
 {
 	for (GLfloat i = 0; i < COLUMNS; ++i)
 		for (GLfloat j = 0; j < ROWS; ++j)
-			DrawSingleSquare(i, j);
+			draw_single_square(i, j);
 }
 
-VOID DrawFood(VOID)
+VOID draw_food(VOID)
 {
 	glColor3d((GLdouble)1.0, (GLdouble)0.3, (GLdouble)0.0);
 	glRectd(xFood,yFood, xFood + 1, yFood+ 1);
 }
 
-VOID DrawSnake(VOID)
+VOID draw_snake(VOID)
 {
 	glColor3f((GLfloat)0.3, (GLfloat)0.8, (GLfloat)0.0);
 
-	for (int i = SnakeLength; i > 0; --i)
+	for (int i = snake_length; i > 0; --i)
 	{
 		if (!(i - 1))
 			glColor3d(1.0, 1.0, 1.0);
@@ -241,27 +242,27 @@ VOID DrawSnake(VOID)
 	
 	if (ySnake[0] == yFood && xSnake[0] == xFood)
 	{
-		RandomizeCoordinateOfFood();
+		randomize_food();
 		
 		if (Speed - 4 >= 0)
 			Speed -= 4;
-		++SnakeLength;
+		++snake_length;
 	}
 }
 
-VOID RandomizeCoordinateOfFood(VOID)
+VOID randomize_food(VOID)
 {
 	srand((unsigned int)time(NULL));
-	xFood = rand() % 37;
-	yFood = rand() % 37;
+	xFood = rand() % MATRIX_SIZE - 2;
+	yFood = rand() % MATRIX_SIZE - 2;
 
 	xFood++;
 	yFood++;
 }
 
-BOOL HasTouchtItSelf(VOID)
+BOOL has_touched_itself(VOID)
 {
-	for (int i = SnakeLength; i > 0 ; --i)
+	for (int i = snake_length; i > 0 ; --i)
 		if (xSnake[0] == xSnake[i] && ySnake[0] == ySnake[i])
 			return TRUE;
 	return FALSE;
