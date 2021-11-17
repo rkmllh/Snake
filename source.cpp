@@ -2,8 +2,11 @@
 #include <glew.h>
 #include <freeglut.h>
 #include <time.h>
-#include <iostream>
-#include <sstream>
+#include <string.h>
+#include <stdio.h>
+
+#define memzero(base,size)	\
+			memset(base, 0, size)
 
 #define COLUMNS		40.0
 #define ROWS		40.0
@@ -13,14 +16,19 @@
 #define RIGHT		2
 #define DOWN		3
 
-GLdouble xSnake[39*39]{ 30,29,28,27,26,25,24 };
-GLdouble ySnake[39*39]{ 30,30,30,30,30,30,30 };
+#define MATRIX_SIZE		39
+
+#define BONUS		2
+#define BUFF_SIZE	256
+
+GLdouble xSnake[MATRIX_SIZE * MATRIX_SIZE]{ 30,29,28,27,26,25,24 };
+GLdouble ySnake[MATRIX_SIZE * MATRIX_SIZE]{ 30,30,30,30,30,30,30 };
 GLdouble xFood = 0;
 GLdouble yFood = 0;
 
 static UINT16 SnakeLength = 1;
 static UINT16 Speed = 260;
-static UINT16 CurrentDirection = LEFT;
+static UINT16 current_direction = LEFT;
 static UINT64 Score = 0;
 
 VOID DisplayCallback(
@@ -94,6 +102,9 @@ VOID DisplayCallback(
 	VOID
 )
 {
+	char buffer[BUFF_SIZE + sizeof(char)];
+	memzero(buffer, BUFF_SIZE);
+
 	glClear(GL_COLOR_BUFFER_BIT);
 	glLoadIdentity();
 
@@ -102,10 +113,9 @@ VOID DisplayCallback(
 
 	if (HasTouchtItSelf())
 	{
-		std::ostringstream text;
-		text << "Score: " << SnakeLength * 2;
+		snprintf(buffer, BUFF_SIZE, "Your snake is died. You lost!");
 
-		MessageBox(NULL, text.str().c_str(), "GAME OVER!", MB_OK);
+		MessageBox(NULL, buffer, "GAME OVER!", MB_OK);
 		ExitProcess(EXIT_SUCCESS);
 	}
 
@@ -136,23 +146,23 @@ VOID KeyCallback(
 	{
 
 	case GLUT_KEY_UP:
-		if (CurrentDirection != DOWN)
-			CurrentDirection = UP;
+		if (current_direction != DOWN)
+			current_direction = UP;
 	break;
 
 	case GLUT_KEY_RIGHT:
-		if (CurrentDirection != LEFT)
-			CurrentDirection = RIGHT;
+		if (current_direction != LEFT)
+			current_direction = RIGHT;
 	break;
 
 	case GLUT_KEY_LEFT:
-		if (CurrentDirection != RIGHT)
-			CurrentDirection = LEFT;
+		if (current_direction != RIGHT)
+			current_direction = LEFT;
 	break;
 
 	case GLUT_KEY_DOWN:
-		if (CurrentDirection != UP)
-			CurrentDirection = DOWN;
+		if (current_direction != UP)
+			current_direction = DOWN;
 	break;
 
 	}
@@ -212,7 +222,7 @@ VOID DrawSnake(VOID)
 		glRectd(xSnake[i], ySnake[i], xSnake[i] + 1, ySnake[i] + 1);
 	}
 
-	switch (CurrentDirection)
+	switch (current_direction)
 	{
 	case LEFT:	--xSnake[0];	break;
 	case UP:	++ySnake[0];	break;
